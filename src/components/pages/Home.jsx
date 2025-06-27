@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import gameService from '@/services/api/gameService';
+import audioService from '@/services/audioService';
 import Button from '@/components/atoms/Button';
 import GameBoard from '@/components/molecules/GameBoard';
 import PlayerIndicator from '@/components/molecules/PlayerIndicator';
@@ -22,8 +23,22 @@ const Home = () => {
     loadGameState();
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     if (gameState?.isGameOver && !showGameOverModal) {
+      // Play appropriate sound effect based on game outcome
+      if (gameState.winner === 'X') {
+        audioService.playVictory();
+      } else if (gameState.winner === 'O') {
+        // In AI mode, O winning means player lost
+        if (gameState.gameMode === 'ai') {
+          audioService.playDefeat();
+        } else {
+          audioService.playVictory();
+        }
+      } else if (gameState.winner === 'draw') {
+        audioService.playDraw();
+      }
+      
       // Add victory screen shake effect
       if (gameState.winner !== 'draw') {
         setScreenShake(true);
@@ -35,7 +50,7 @@ const Home = () => {
         setShowGameOverModal(true);
       }, 1000);
     }
-  }, [gameState?.isGameOver, showGameOverModal]);
+  }, [gameState?.isGameOver, showGameOverModal, gameState?.winner, gameState?.gameMode]);
 
   const loadGameState = async () => {
     setLoading(true);
@@ -93,13 +108,13 @@ const Home = () => {
       return;
     }
 
-    try {
+try {
       const result = await gameService.makeMove(row, col);
       if (result.success) {
         setGameState(result.gameState);
         
-        // Play move sound effect (placeholder for actual sound)
-        console.log('🔊 Stone carving sound');
+        // Play move sound effect
+        audioService.playMove();
       }
     } catch (error) {
       toast.error('Failed to make move');
