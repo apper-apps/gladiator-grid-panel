@@ -195,18 +195,39 @@ getAIMove(board, difficulty) {
 
     this.gameState.board = newBoard;
 
-    // If it's AI turn and game is not over
+// If it's AI turn and game is not over
     if (!this.gameState.isGameOver && 
         this.gameState.gameMode === 'ai' && 
         this.gameState.currentPlayer === 'O') {
-// AI makes move after difficulty-based delay
+      // AI makes move after difficulty-based delay
       const delays = { easy: 500, medium: 1000, hard: 1500 };
       const aiDelay = delays[this.gameState.difficulty] || 800;
       
-      setTimeout(async () => {
+      setTimeout(() => {
         const aiMove = this.getAIMove(newBoard, this.gameState.difficulty);
-        if (aiMove) {
-          await this.makeMove(aiMove.row, aiMove.col);
+        if (aiMove && !this.gameState.isGameOver) {
+          // Make AI move directly without recursion
+          const aiBoardCopy = this.gameState.board.map(r => [...r]);
+          aiBoardCopy[aiMove.row][aiMove.col] = 'O';
+          
+          const aiResult = this.checkWinner(aiBoardCopy);
+          
+          if (aiResult.winner) {
+            this.gameState.isGameOver = true;
+            this.gameState.winner = aiResult.winner;
+            this.gameState.winLine = aiResult.line;
+            
+            // Update scores
+            if (aiResult.winner === 'draw') {
+              this.gameState.scores.draws++;
+            } else {
+              this.gameState.scores[aiResult.winner]++;
+            }
+          } else {
+            this.gameState.currentPlayer = 'X'; // Switch back to human player
+          }
+          
+          this.gameState.board = aiBoardCopy;
         }
       }, aiDelay);
     }

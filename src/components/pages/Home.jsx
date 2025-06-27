@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-toastify';
-import gameService from '@/services/api/gameService';
-import audioService from '@/services/audioService';
-import Button from '@/components/atoms/Button';
-import GameBoard from '@/components/molecules/GameBoard';
-import PlayerIndicator from '@/components/molecules/PlayerIndicator';
-import ScoreDisplay from '@/components/molecules/ScoreDisplay';
-import ModeSelector from '@/components/organisms/ModeSelector';
-import GameOverModal from '@/components/organisms/GameOverModal';
-import ApperIcon from '@/components/ApperIcon';
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "react-toastify";
+import audioService from "@/services/audioService";
+import gameService from "@/services/api/gameService";
+import ApperIcon from "@/components/ApperIcon";
+import GameBoard from "@/components/molecules/GameBoard";
+import ScoreDisplay from "@/components/molecules/ScoreDisplay";
+import PlayerIndicator from "@/components/molecules/PlayerIndicator";
+import GameOverModal from "@/components/organisms/GameOverModal";
+import ModeSelector from "@/components/organisms/ModeSelector";
+import Button from "@/components/atoms/Button";
 
 const Home = () => {
   const [gameState, setGameState] = useState(null);
@@ -53,16 +53,11 @@ useEffect(() => {
   }, [gameState?.isGameOver, showGameOverModal, gameState?.winner, gameState?.gameMode]);
 
   const loadGameState = async () => {
-    setLoading(true);
     try {
       const state = await gameService.getGameState();
       setGameState(state);
-      
-      // Show mode selector if no game mode is set
-      if (!state.gameMode || state.gameMode === 'human') {
-        setShowModeSelector(true);
-      }
     } catch (error) {
+      console.error('Failed to load game state:', error);
       toast.error('Failed to load game');
     } finally {
       setLoading(false);
@@ -70,43 +65,42 @@ useEffect(() => {
   };
 
   const handleModeSelect = async (mode) => {
-    if (!mode) {
-      setShowDifficultySelector(false);
-      return;
-    }
-
-    if (mode === 'ai') {
-      setShowDifficultySelector(true);
-      return;
-    }
-
     try {
       const newState = await gameService.setGameMode(mode);
       setGameState(newState);
       setShowModeSelector(false);
-      setShowDifficultySelector(false);
-      toast.success(`Battle mode: ${mode === 'human' ? 'Human vs Human' : 'Human vs AI'}`);
+      
+      if (mode === 'ai') {
+        setShowDifficultySelector(true);
+      } else {
+        // For human vs human, start the game immediately
+        const gameStartState = await gameService.resetGame();
+        setGameState(gameStartState);
+        audioService.playButtonClick();
+}
     } catch (error) {
+      console.error('Failed to set game mode:', error);
       toast.error('Failed to set game mode');
     }
   };
 
-const handleDifficultySelect = async (difficulty) => {
+  const handleDifficultySelect = async (difficulty) => {
     try {
+      const difficultyNames = { easy: "Novice", medium: "Skilled", hard: "Master" };
       const newState = await gameService.setGameMode('ai', difficulty);
       setGameState(newState);
-      setShowModeSelector(false);
-      setShowDifficultySelector(false);
       
-      const difficultyNames = {
-        easy: 'Novice',
-        medium: 'Skilled',
-        hard: 'Master'
-      };
-      toast.success(`AI difficulty: ${difficultyNames[difficulty]}`);
+      // Start the game after difficulty is set
+      const gameStartState = await gameService.resetGame();
+      setGameState(gameStartState);
+      
+      setShowDifficultySelector(false);
+      audioService.playButtonClick();
+      toast.success(`Difficulty set to ${difficultyNames[difficulty]}! Game started!`);
     } catch (error) {
+      console.error('Failed to set difficulty:', error);
       toast.error('Failed to set difficulty');
-    }
+}
   };
 
   const handleCellClick = async (row, col) => {
@@ -114,7 +108,7 @@ const handleDifficultySelect = async (difficulty) => {
       return;
     }
 
-try {
+    try {
       const result = await gameService.makeMove(row, col);
       if (result.success) {
         setGameState(result.gameState);
@@ -153,7 +147,7 @@ try {
     }
   };
 
-  if (loading) {
+if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <motion.div
@@ -166,11 +160,9 @@ try {
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             className="mb-4"
           >
-            <ApperIcon name="Loader" className="w-12 h-12 text-secondary mx-auto" />
+            <ApperIcon name="Crown" className="w-12 h-12 text-secondary golden-glow" />
           </motion.div>
-          <h2 className="font-display text-2xl text-secondary carved-text">
-            Preparing the Arena...
-          </h2>
+          <p className="font-body text-lg text-secondary/80">Loading Gladiator Grid...</p>
         </motion.div>
       </div>
     );
@@ -225,15 +217,16 @@ try {
         {gameState && (
           <div className="space-y-8">
             {/* Score Display */}
-            <ScoreDisplay scores={gameState.scores} />
+<ScoreDisplay scores={gameState.scores} />
 
-{/* Player Indicator */}
+            {/* Player Indicator */}
             <PlayerIndicator
               currentPlayer={gameState.currentPlayer}
               gameMode={gameState.gameMode}
               isGameOver={gameState.isGameOver}
               difficulty={gameState.difficulty}
             />
+            
             {/* Game Board */}
             <div className="flex justify-center">
               <GameBoard
@@ -245,7 +238,7 @@ try {
             </div>
 
             {/* Game status */}
-{gameState.gameMode === 'ai' && gameState.currentPlayer === 'O' && !gameState.isGameOver && (
+            {gameState.gameMode === 'ai' && gameState.currentPlayer === 'O' && !gameState.isGameOver && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
