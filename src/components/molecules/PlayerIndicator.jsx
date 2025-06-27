@@ -1,10 +1,14 @@
 import { motion } from 'framer-motion';
 import ApperIcon from '@/components/ApperIcon';
 
-const PlayerIndicator = ({ currentPlayer, gameMode, isGameOver = false }) => {
+const PlayerIndicator = ({ currentPlayer, gameMode, isGameOver = false, difficulty = 'easy' }) => {
   const getPlayerName = (player) => {
     if (player === 'X') return 'Gladiator';
-    return gameMode === 'ai' ? 'AI Centurion' : 'Fellow Warrior';
+    if (gameMode === 'ai') {
+      const difficultyNames = { easy: 'Novice', medium: 'Skilled', hard: 'Master' };
+      return `${difficultyNames[difficulty]} AI`;
+    }
+    return 'Fellow Warrior';
   };
 
   const getPlayerIcon = (player) => {
@@ -39,8 +43,11 @@ const PlayerIndicator = ({ currentPlayer, gameMode, isGameOver = false }) => {
               <h3 className="font-display text-2xl carved-text text-secondary">
                 {getPlayerName(currentPlayer)}'s Turn
               </h3>
-              <p className="text-secondary/80 font-body">
+<p className="text-secondary/80 font-body">
                 Playing as {currentPlayer}
+                {gameMode === 'ai' && currentPlayer === 'O' && 
+                  ` • ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)} Level`
+                }
               </p>
             </div>
           </motion.div>

@@ -71,7 +71,7 @@ const ModeSelector = ({ onModeSelect, onDifficultySelect, showDifficulty = false
               </p>
             </div>
 
-            <div className="space-y-4">
+<div className="space-y-4">
               <Button
                 variant="secondary"
                 size="lg"
@@ -82,6 +82,19 @@ const ModeSelector = ({ onModeSelect, onDifficultySelect, showDifficulty = false
                 <div className="text-left">
                   <div className="font-semibold">Novice Centurion</div>
                   <div className="text-sm opacity-80">Makes random moves</div>
+                </div>
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="lg"
+                icon="Zap"
+                onClick={() => onDifficultySelect('medium')}
+                className="w-full"
+              >
+                <div className="text-left">
+                  <div className="font-semibold">Skilled Warrior</div>
+                  <div className="text-sm opacity-80">Balanced strategy</div>
                 </div>
               </Button>
               

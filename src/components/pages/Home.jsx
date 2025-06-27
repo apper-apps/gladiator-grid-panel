@@ -91,13 +91,19 @@ useEffect(() => {
     }
   };
 
-  const handleDifficultySelect = async (difficulty) => {
+const handleDifficultySelect = async (difficulty) => {
     try {
       const newState = await gameService.setGameMode('ai', difficulty);
       setGameState(newState);
       setShowModeSelector(false);
       setShowDifficultySelector(false);
-      toast.success(`AI difficulty: ${difficulty === 'easy' ? 'Novice' : 'Master'}`);
+      
+      const difficultyNames = {
+        easy: 'Novice',
+        medium: 'Skilled',
+        hard: 'Master'
+      };
+      toast.success(`AI difficulty: ${difficultyNames[difficulty]}`);
     } catch (error) {
       toast.error('Failed to set difficulty');
     }
@@ -221,13 +227,13 @@ try {
             {/* Score Display */}
             <ScoreDisplay scores={gameState.scores} />
 
-            {/* Player Indicator */}
+{/* Player Indicator */}
             <PlayerIndicator
               currentPlayer={gameState.currentPlayer}
               gameMode={gameState.gameMode}
               isGameOver={gameState.isGameOver}
+              difficulty={gameState.difficulty}
             />
-
             {/* Game Board */}
             <div className="flex justify-center">
               <GameBoard
@@ -239,7 +245,7 @@ try {
             </div>
 
             {/* Game status */}
-            {gameState.gameMode === 'ai' && gameState.currentPlayer === 'O' && !gameState.isGameOver && (
+{gameState.gameMode === 'ai' && gameState.currentPlayer === 'O' && !gameState.isGameOver && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -247,13 +253,18 @@ try {
               >
                 <div className="flex items-center justify-center gap-3">
                   <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1, repeat: Infinity }}
+                    animate={{ rotate: 360 }}
+                    transition={{ 
+                      duration: gameState.difficulty === 'easy' ? 1 : 
+                               gameState.difficulty === 'medium' ? 1.5 : 2,
+                      repeat: Infinity,
+                      ease: "linear"
+                    }}
                   >
-                    <ApperIcon name="Bot" className="w-6 h-6 text-secondary" />
+                    <ApperIcon name="Crown" className="w-6 h-6 text-secondary golden-glow" />
                   </motion.div>
                   <p className="font-body text-secondary/80">
-                    AI Centurion is planning their move...
+                    AI Centurion is contemplating their strategy...
                   </p>
                 </div>
               </motion.div>

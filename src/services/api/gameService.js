@@ -5,8 +5,8 @@ class GameService {
     this.gameState = {
       board: Array(3).fill().map(() => Array(3).fill('')),
       currentPlayer: 'X',
-      gameMode: 'human', // 'human' or 'ai'
-      difficulty: 'easy', // 'easy' or 'hard'
+gameMode: 'human', // 'human' or 'ai'
+      difficulty: 'easy', // 'easy', 'medium', or 'hard'
       isGameOver: false,
       winner: null,
       scores: { X: 0, O: 0, draws: 0 }
@@ -44,7 +44,7 @@ class GameService {
     return { ...this.gameState };
   }
 
-  async setGameMode(mode, difficulty = 'easy') {
+async setGameMode(mode, difficulty = 'easy') {
     await delay(100);
     this.gameState.gameMode = mode;
     this.gameState.difficulty = difficulty;
@@ -83,20 +83,28 @@ class GameService {
     return { winner: null, line: null };
   }
 
-  getAIMove(board, difficulty) {
-    if (difficulty === 'easy') {
-      // Easy AI: Random valid move
-      const emptyCells = [];
-      for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-          if (board[i][j] === '') {
-            emptyCells.push({ row: i, col: j });
-          }
+getAIMove(board, difficulty) {
+    const emptyCells = [];
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (board[i][j] === '') {
+          emptyCells.push({ row: i, col: j });
         }
       }
+    }
+
+    if (difficulty === 'easy') {
+      // Easy AI: Random valid move
       return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    } else if (difficulty === 'medium') {
+      // Medium AI: 70% optimal move, 30% random
+      if (Math.random() < 0.7) {
+        return this.getBestMove(board);
+      } else {
+        return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      }
     } else {
-      // Hard AI: Minimax algorithm
+      // Hard AI: Always optimal (minimax algorithm)
       return this.getBestMove(board);
     }
   }
@@ -191,14 +199,16 @@ class GameService {
     if (!this.gameState.isGameOver && 
         this.gameState.gameMode === 'ai' && 
         this.gameState.currentPlayer === 'O') {
+// AI makes move after difficulty-based delay
+      const delays = { easy: 500, medium: 1000, hard: 1500 };
+      const aiDelay = delays[this.gameState.difficulty] || 800;
       
-      // AI makes move after short delay
       setTimeout(async () => {
         const aiMove = this.getAIMove(newBoard, this.gameState.difficulty);
         if (aiMove) {
           await this.makeMove(aiMove.row, aiMove.col);
         }
-      }, 800);
+      }, aiDelay);
     }
 
     return { success: true, gameState: { ...this.gameState } };
