@@ -1,0 +1,23 @@
+[
+  {
+    "Id": 1,
+    "player1": "Gladiator",
+    "player2": "AI Centurion",
+    "winner": "Gladiator",
+    "timestamp": "2024-01-15T10:30:00Z"
+  },
+  {
+    "Id": 2,
+    "player1": "Gladiator",
+    "player2": "Fellow Warrior",
+    "winner": "Fellow Warrior",
+    "timestamp": "2024-01-15T11:15:00Z"
+  },
+  {
+    "Id": 3,
+    "player1": "Gladiator",
+    "player2": "AI Legion",
+    "winner": "Draw",
+    "timestamp": "2024-01-15T12:00:00Z"
+  }
+]
